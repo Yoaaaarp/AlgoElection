@@ -11,6 +11,17 @@ public class ElectionThread implements Runnable {
 		// TODO faire un truc qui correspond à la donnée...
 		while(true);
 	}
+
+	/**
+	 * @return the elu
+	 */
+	public Site getElu() {
+		return elu;
+	}
+	
+	public void trouverNouvelElu(){
+		
+	}
 	
 	
 }

@@ -35,8 +35,9 @@ public class Site extends Thread {
 	@Override
 	public void run() {
 		// TODO faire un truc qui correspond à la donnée...
-		app = new ApplicationThread();
+		
 		election = new ElectionThread();
+		app = new ApplicationThread(election);
 		threadApp = new Thread(app);
 		threadApp.start();
 		threadElection = new Thread(election);

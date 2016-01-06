@@ -60,4 +60,10 @@ public class Environnement {
 	public void reprisePanne(int siteID){
 		vm.get(siteID).start();
 	}
+	
+	public void arretTotal(){
+		for(Site s: vm){
+			s.stop();
+		}
+	}
 }
