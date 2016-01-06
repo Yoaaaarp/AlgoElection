@@ -1,18 +1,16 @@
 
-public class ApplicationThread {
-	private final int NB_MAX_SITE = 4; // hypothèse
+public class ApplicationThread implements Runnable {
 	
 	public ApplicationThread(){
 		
-	};
-	
-	public int init(int nbSite){
-		// on s'assure que l'on ne crée pas plus de 4 sites
-		if (nbSite > NB_MAX_SITE){
-			return -1;
-		}
-		//TODO
-		return 0;
 	}
+
+	@Override
+	public void run() {
+		// TODO faire un truc qui correspond a la donnée
+		while(true);
+		
+	}
+	
 	
 }
