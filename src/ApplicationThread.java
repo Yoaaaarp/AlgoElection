@@ -10,6 +10,9 @@ public class ApplicationThread implements Runnable {
 
 	@Override
 	public void run() {
+		if(gestionnaire.isElectionEnCours()){
+			//TODO signal.wait;
+		}
 		Site elu;
 		while(true){
 			elu = gestionnaire.getElu();

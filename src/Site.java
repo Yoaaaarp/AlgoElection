@@ -14,11 +14,18 @@ public class Site extends Thread {
 	private int port;
 	private InetAddress addr;
 	private HashMap<Integer, Pair<InetAddress, Integer>> sites;
+	private int aptitude;
 	
 	public Site(int id, int port, InetAddress addr){
 		this.id = id;
 		this.port = port;
 		this.addr = addr;
+		aptitude = 0;
+		for(byte b : addr.getAddress()){
+			aptitude *= 10;
+			aptitude += (int)b;
+		}
+		aptitude += port;
 	}
 	
 	public void init(HashMap<Integer, Pair<InetAddress, Integer>> sites){
@@ -36,7 +43,7 @@ public class Site extends Thread {
 	public void run() {
 		// TODO faire un truc qui correspond à la donnée...
 		
-		election = new ElectionThread();
+		election = new ElectionThread(id, aptitude);
 		app = new ApplicationThread(election);
 		threadApp = new Thread(app);
 		threadApp.start();
