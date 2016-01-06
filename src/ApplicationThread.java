@@ -1,15 +1,30 @@
 
 public class ApplicationThread implements Runnable {
 	
-	public ApplicationThread(){
-		
+	ElectionThread gestionnaire;
+	
+	
+	public ApplicationThread(ElectionThread gestionnaire){
+		this.gestionnaire = gestionnaire;
 	}
 
 	@Override
 	public void run() {
-		// TODO faire un truc qui correspond a la donnée
-		while(true);
+		if(gestionnaire.isElectionEnCours()){
+			//TODO signal.wait;
+		}
+		Site elu;
+		while(true){
+			elu = gestionnaire.getElu();
+			if(!communiquerAvecElu()){
+				gestionnaire.trouverNouvelElu();
+			}
+		}
 		
+	}
+	
+	private boolean communiquerAvecElu(){
+		return true;
 	}
 	
 	

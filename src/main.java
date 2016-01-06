@@ -19,6 +19,7 @@ public class main {
 			e.printStackTrace();
 		}		
 		
+		env.arretTotal();
 		System.out.println("Fin programme");
 	}
 
