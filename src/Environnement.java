@@ -44,7 +44,7 @@ public class Environnement {
 		
 		vm = new ArrayList<Site>();
 		Thread t;
-		// initialisation des sites avec la hashmap complete et demarrage de ces derniers
+		// initialisation des sites avec la hashmap complete et demarrage de ces derniers (simulation VM)
 		for (Site s : liste){
 			s.init(sites);
 			s.start();
