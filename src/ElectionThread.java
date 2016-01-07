@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -23,6 +24,8 @@ public class ElectionThread implements Runnable {
 	private List<Pair<InetAddress, Integer>> sites;
 	private int next;
 	DatagramSocket serverSocket;
+	DatagramSocket envoieSocket;
+	private boolean running;
 
 	public ElectionThread(int id, int aptitude, List<Pair<InetAddress, Integer>> sites){
 		this.id = id;
@@ -37,20 +40,26 @@ public class ElectionThread implements Runnable {
 		
 		try {
 			serverSocket = new DatagramSocket(sites.get(id).getValue());
-			byte[] receiveData = new byte[1024];
-			byte[] sendData = new byte[1024];
-			while(true)
+			envoieSocket = new DatagramSocket();
+			envoieSocket.setSoTimeout(5000);
+			running = true;
+			while(running)
 			{
+				byte[] receiveData = new byte[300];
 				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-				serverSocket.receive(receivePacket);
-				String message = new String( receivePacket.getData());
+				String message = recevoirMessage(serverSocket,receivePacket);
 				String[] splitedMessage = message.split(":");
 				Message type = Message.valueOf(splitedMessage[0]);
 				
+				
 				switch (type) {
 				case ELECTION:
-					HashMap<Integer, Integer> aptitudes = byteArrayToHashMap(splitedMessage[1].getBytes());
+					envoyerQuittance(receivePacket);
+					HashMap<Integer, Integer> aptitudes = (HashMap<Integer, Integer>)byteArrayToObject(splitedMessage[1].getBytes());
+					
+					// si le site a deja participé à l'élection
 					if(aptitudes.containsKey(id)){
+						//trouver l'elu
 						int maxValue = 0;
 						int maxKey = 0;
 						for(int i : aptitudes.keySet()){
@@ -60,20 +69,36 @@ public class ElectionThread implements Runnable {
 							}
 						}
 						elu = maxKey;
-						String reponse = Message.RESULTAT + ":" + id + ":" + elu;
-						envoyerMessage(reponse, serverSocket, sites.get(next).getKey(), sites.get(next).getValue());
+						//envoi le résultat de l'election
+						List<Integer> ids = new ArrayList<Integer>();
+						next = (id + 1) % sites.size();
+						envoyerResultat(ids);
 						electionEnCours = false;
 						//TODO signal fin election
 					}else{
-						aptitudes.put(id, aptitude);
-						String reponse = splitedMessage[0] + ":" + hashMapToByteArray(aptitudes);
-						envoyerMessage(reponse, serverSocket, sites.get(next).getKey(), sites.get(next).getValue());
+						//Pour simplifier on ne garde pas en mémoire qu'un site est en panne.
+						next = (id + 1) % sites.size();
+						envoyerElection(aptitudes);
 					}
 					break;
 				case RESULTAT:
+					envoyerQuittance(receivePacket);
+					//récupération de la liste de id ayant reçu le résultat
+					List<Integer> ids = (List<Integer>)byteArrayToObject(splitedMessage[1].getBytes());
+					
+					//transmission des résultats s'ils n'ont pas encore fait le tour
+					if(!ids.contains(id)){
+						electionEnCours = false;
+						elu = Integer.valueOf(splitedMessage[2]);
+						//Pour simplifier on ne garde pas en mémoire qu'un site est en panne.
+						next = (id + 1) % sites.size();
+						envoyerResultat(ids);
+					}
+						
 					
 					break;
 				case BONJOUR:
+					// communication en tant qu'élu avec une application
 					String reponse = Message.BONJOUR.toString();
 					envoyerMessage(reponse, serverSocket, receivePacket.getAddress(), receivePacket.getPort());
 					break;
@@ -83,13 +108,14 @@ public class ElectionThread implements Runnable {
 				
 				
 			}
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
-
-
-
+		// fermture des sockets à l'arrêt du programme
+		serverSocket.close();
+		envoieSocket.close();
 	}
 
 	/**
@@ -105,23 +131,35 @@ public class ElectionThread implements Runnable {
 	public boolean isElectionEnCours() {
 		return electionEnCours;
 	}
+	
+	
 
+	/**
+	 * @param running the running to set
+	 */
+	public void setRunning(boolean running) {
+		this.running = running;
+	}
+
+	/**
+	 * Méthode à appeler pour commencer une nouvelle élection
+	 */
 	public void trouverNouvelElu(){
 		electionEnCours = true;
 		HashMap<Integer, Integer> aptitudes = new HashMap<Integer, Integer>();
-		aptitudes.put(id, aptitude);
-		String message = Message.ELECTION + ":" + hashMapToByteArray(aptitudes);
-		envoyerMessage(message, serverSocket, sites.get(next).getKey(), sites.get(next).getValue());
+		//Pour simplifier on ne garde pas en mémoire qu'un site est en panne.
+		next = (id + 1) % sites.size();
+		envoyerElection(aptitudes);
 	}
 
-	private byte[] hashMapToByteArray(HashMap<Integer, Integer> map){
+	private byte[] objectToByteArray(Object obj){
 		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 		ObjectOutputStream out;
 		try {
 			out = new ObjectOutputStream(byteOut);
-			out.writeObject(map);
+			out.writeObject(obj);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 
@@ -129,13 +167,13 @@ public class ElectionThread implements Runnable {
 	}
 	
 
-	private HashMap<Integer, Integer> byteArrayToHashMap(byte[] bytes){
+	private Object byteArrayToObject(byte[] bytes){
 		ByteArrayInputStream in = new ByteArrayInputStream(bytes);
 	    ObjectInputStream is;
-	    HashMap<Integer, Integer> temp = new HashMap<Integer, Integer>();
+	    Object temp = new HashMap<Integer, Integer>();
 		try {
 			is = new ObjectInputStream(in);
-			temp = (HashMap<Integer, Integer>)is.readObject();
+			temp = is.readObject();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -147,14 +185,60 @@ public class ElectionThread implements Runnable {
 	private void envoyerMessage(String message, DatagramSocket serverSocket, InetAddress addr, int port){
 		byte[] sendData = new byte[1024];
 		sendData = message.getBytes();
-		DatagramPacket sendPacket =
-		new DatagramPacket(sendData, sendData.length, addr, port);
+		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, addr, port);
 		try {
 			serverSocket.send(sendPacket);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	private void envoyerQuittance(DatagramPacket packet){
+		envoyerMessage(Message.QUITTANCE.toString(), envoieSocket, packet.getAddress(), packet.getPort());
+	}
+	
+	private void envoyerElection(HashMap<Integer, Integer> aptitudes){
+		aptitudes.put(id, aptitude);
+		String message = Message.ELECTION + ":" + objectToByteArray(aptitudes);
+		envoyerMessage(message, serverSocket, sites.get(next).getKey(), sites.get(next).getValue());
+		if(!attendreQuittance()){
+			next = (next + 1) % sites.size();
+			envoyerElection(aptitudes);
+		}
+	}
+	
+	private void envoyerResultat(List<Integer> ids){
+		ids.add(id);
+		String reponse = Message.RESULTAT + ":" + objectToByteArray(ids) + ":" + elu;
+		envoyerMessage(reponse, envoieSocket, sites.get(next).getKey(), sites.get(next).getValue());
+		if(!attendreQuittance()){
+			next = (next + 1) % sites.size();
+			envoyerResultat(ids);
+		}
+	}
+	
+	private boolean attendreQuittance(){
+		byte[] receiveData = new byte[300];
+		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+		String reponse;
+		try {
+			reponse = recevoirMessage(envoieSocket, receivePacket);
+		} catch (IOException e) {
+			return false;
+		}
+		
+		if(reponse != Message.QUITTANCE.toString()){
+			return false;
+		}
+		
+		return true;
+	}
+	
+	private String recevoirMessage(DatagramSocket socket, DatagramPacket packet) throws IOException{
+		
+		socket.receive(packet);
+		
+		return new String( packet.getData());
 	}
 	
 	

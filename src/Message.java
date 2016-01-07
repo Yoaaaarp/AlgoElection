@@ -10,5 +10,5 @@
  *
  */
 public enum Message {
-	ELECTION, RESULTAT, BONJOUR
+	ELECTION, RESULTAT, BONJOUR, QUITTANCE
 }
