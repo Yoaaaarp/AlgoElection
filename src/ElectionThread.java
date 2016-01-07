@@ -78,7 +78,10 @@ public class ElectionThread implements Runnable {
 						next = (id + 1) % sites.size();
 						envoyerResultat(ids);
 						electionEnCours = false;
-						//TODO signal fin election
+						//signal à l'application que l'election est finie
+						synchronized (sync) {
+							sync.notify();
+						}
 					}else{
 						//Pour simplifier on ne garde pas en mémoire qu'un site est en panne.
 						next = (id + 1) % sites.size();
@@ -94,6 +97,10 @@ public class ElectionThread implements Runnable {
 					if(!ids.contains(id)){
 						electionEnCours = false;
 						elu = Integer.valueOf(splitedMessage[2]);
+						//signal à l'application que l'election est finie
+						synchronized (sync) {
+							sync.notify();
+						}
 						//Pour simplifier on ne garde pas en mémoire qu'un site est en panne.
 						next = (id + 1) % sites.size();
 						envoyerResultat(ids);
