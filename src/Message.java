@@ -9,6 +9,7 @@
  * @author Marc
  *
  */
+
 public enum Message {
 	ELECTION, RESULTAT, BONJOUR
 }

@@ -1,7 +1,6 @@
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javafx.util.Pair;
@@ -9,7 +8,7 @@ import javafx.util.Pair;
 
 public class Environnement {
 	private final int NB_MAX_SITE = 4; // hypothèse 1
-	private HashMap<Integer, Pair<InetAddress, Integer>> sites; // tableau liant un site (InetAddress/port) à un ID
+	private List< Pair<InetAddress, Integer>> sites; // tableau liant un site (InetAddress/port) à un ID
 	private int idSite;
 	private int port;
 	private List<Site> vm; // chaque site est un thread permettant ainsi de simuler une panne/reprise
@@ -31,12 +30,12 @@ public class Environnement {
 		Site courant;
 		InetAddress addr;
 		List<Site> liste = new ArrayList<Site>();
-		sites = new HashMap<Integer, Pair<InetAddress, Integer>>();
+		sites = new ArrayList<Pair<InetAddress, Integer>>();
 		// creation des sites ainsi qu'une entré correspondante dans la hashmap
 		for (int i = 0; i < nbSite; i++){
 			addr = InetAddress.getByName(addressNames[i]);
-			sites.put(new Integer(idSite), new Pair<InetAddress, Integer>(addr, new Integer(port)));
-			courant = new Site(idSite, port, addr);
+			sites.add(new Pair<InetAddress, Integer>(addr, new Integer(port)));
+			courant = new Site(idSite, port, addr, 2000);
 			liste.add(courant);
 			idSite++;
 			port++;
