@@ -54,15 +54,20 @@ public class Environnement {
 	}
 	
 	public void simulerPanne(int siteID){
+		// on kill les threads internes
 		vm.get(siteID).panne();
 	}
 	
 	public void reprisePanne(int siteID){
+		// on restart le thread
 		vm.get(siteID).start();
 	}
 	
 	public void arretTotal(){
 		for(Site s: vm){
+			// on kill les threads internes
+			s.safeStop();
+			// puis on kill le thread principale
 			s.stop();
 		}
 	}

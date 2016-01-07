@@ -58,4 +58,7 @@ public class Site extends Thread {
 		threadElection.stop();
 	}
 
+	public void safeStop() {
+		app.setRunning(false);
+	}
 }
