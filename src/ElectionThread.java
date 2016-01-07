@@ -23,8 +23,12 @@ public class ElectionThread implements Runnable {
 	private int aptitude;
 	private List<Pair<InetAddress, Integer>> sites;
 	private int next;
-	DatagramSocket serverSocket;
-	DatagramSocket envoieSocket;
+
+
+	private DatagramSocket envoieSocket;
+	private DatagramSocket serverSocket;
+	private Object sync;
+
 	private boolean running;
 
 	public ElectionThread(int id, int aptitude, List<Pair<InetAddress, Integer>> sites){
@@ -36,7 +40,7 @@ public class ElectionThread implements Runnable {
 
 	@Override
 	public void run() {
-
+		running = true;
 		
 		try {
 			serverSocket = new DatagramSocket(sites.get(id).getValue());
@@ -192,7 +196,7 @@ public class ElectionThread implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void envoyerQuittance(DatagramPacket packet){
 		envoyerMessage(Message.QUITTANCE.toString(), envoieSocket, packet.getAddress(), packet.getPort());
 	}
@@ -242,6 +246,12 @@ public class ElectionThread implements Runnable {
 	}
 	
 	
+
+
+	public void setSync(Object sync){
+		this.sync = sync;
+	}
+
 
 
 }

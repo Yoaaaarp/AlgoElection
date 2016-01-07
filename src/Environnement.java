@@ -1,7 +1,10 @@
+/**
+ * 
+ */
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javafx.util.Pair;
@@ -36,7 +39,7 @@ public class Environnement {
 		for (int i = 0; i < nbSite; i++){
 			addr = InetAddress.getByName(addressNames[i]);
 			sites.add(new Pair<InetAddress, Integer>(addr, new Integer(port)));
-			courant = new Site(idSite, port, addr);
+			courant = new Site(idSite, port, addr, 2000);
 			liste.add(courant);
 			idSite++;
 			port++;
@@ -44,7 +47,7 @@ public class Environnement {
 		
 		vm = new ArrayList<Site>();
 		Thread t;
-		// initialisation des sites avec la hashmap complete et demarrage de ces derniers
+		// initialisation des sites avec la hashmap complete et demarrage de ces derniers (simulation VM)
 		for (Site s : liste){
 			s.init(sites);
 			s.start();
@@ -54,15 +57,20 @@ public class Environnement {
 	}
 	
 	public void simulerPanne(int siteID){
+		// on kill les threads internes
 		vm.get(siteID).panne();
 	}
 	
 	public void reprisePanne(int siteID){
+		// on restart le thread
 		vm.get(siteID).start();
 	}
 	
 	public void arretTotal(){
 		for(Site s: vm){
+			// on kill les threads internes
+			s.safeStop();
+			// puis on kill le thread principale
 			s.stop();
 		}
 	}

@@ -1,6 +1,5 @@
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.HashMap;
 import java.util.List;
 
 import javafx.util.Pair;
@@ -16,8 +15,10 @@ public class Site extends Thread {
 	private InetAddress addr;
 	private List< Pair<InetAddress, Integer>> sites;
 	private int aptitude;
+	private final int T;
 	
-	public Site(int id, int port, InetAddress addr){
+	public Site(int id, int port, InetAddress addr, int T){
+		this.T = T;
 		this.id = id;
 		this.port = port;
 		this.addr = addr;
@@ -30,7 +31,6 @@ public class Site extends Thread {
 	}
 	
 	public void init(List<Pair<InetAddress, Integer>> sites){
-		// TODO
 		this.sites = sites;
 		
 	}
@@ -45,7 +45,7 @@ public class Site extends Thread {
 		// TODO faire un truc qui correspond à la donnée...
 		
 		election = new ElectionThread(id, aptitude, sites);
-		app = new ApplicationThread(election);
+		app = new ApplicationThread(election, sites.get(id), T, sites.size());
 		threadApp = new Thread(app);
 		threadApp.start();
 		threadElection = new Thread(election);
@@ -59,4 +59,8 @@ public class Site extends Thread {
 		threadElection.stop();
 	}
 
+	public void safeStop() {
+		app.setRunning(false);
+		election.setRunning(false);
+	}
 }
