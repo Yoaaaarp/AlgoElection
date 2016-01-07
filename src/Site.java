@@ -111,6 +111,9 @@ public class Site extends Thread {
 		threadElection.stop();
 	}
 
+	/**
+	 * Méthode permettant d'arrêter un site de manière sécuritaire.
+	 */
 	public void safeStop() {
 		app.setRunning(false);
 		election.setRunning(false);
