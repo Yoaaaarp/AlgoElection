@@ -1,3 +1,7 @@
+import java.net.InetAddress;
+
+import javafx.util.Pair;
+
 
 public class ApplicationThread implements Runnable {
 	
@@ -13,7 +17,7 @@ public class ApplicationThread implements Runnable {
 		if(gestionnaire.isElectionEnCours()){
 			//TODO signal.wait;
 		}
-		Site elu;
+		Pair<InetAddress, Integer> elu;
 		while(true){
 			elu = gestionnaire.getElu();
 			if(!communiquerAvecElu()){

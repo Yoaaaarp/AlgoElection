@@ -22,6 +22,7 @@ public class ElectionThread implements Runnable {
 	private int aptitude;
 	private List<Pair<InetAddress, Integer>> sites;
 	private int next;
+	DatagramSocket serverSocket;
 
 	public ElectionThread(int id, int aptitude, List<Pair<InetAddress, Integer>> sites){
 		this.id = id;
@@ -33,7 +34,7 @@ public class ElectionThread implements Runnable {
 	@Override
 	public void run() {
 
-		DatagramSocket serverSocket;
+		
 		try {
 			serverSocket = new DatagramSocket(sites.get(id).getValue());
 			byte[] receiveData = new byte[1024];
@@ -48,7 +49,7 @@ public class ElectionThread implements Runnable {
 				
 				switch (type) {
 				case ELECTION:
-					HashMap<Integer, Integer> aptitudes = byteArrayToHashMap(splitedMessage[2].getBytes());
+					HashMap<Integer, Integer> aptitudes = byteArrayToHashMap(splitedMessage[1].getBytes());
 					if(aptitudes.containsKey(id)){
 						int maxValue = 0;
 						int maxKey = 0;
@@ -61,10 +62,11 @@ public class ElectionThread implements Runnable {
 						elu = maxKey;
 						String reponse = Message.RESULTAT + ":" + id + ":" + elu;
 						envoyerMessage(reponse, serverSocket, sites.get(next).getKey(), sites.get(next).getValue());
-						
+						electionEnCours = false;
+						//TODO signal fin election
 					}else{
 						aptitudes.put(id, aptitude);
-						String reponse = splitedMessage[0] + ":" + splitedMessage[1] + ":" + HashMapToByteArray(aptitudes);
+						String reponse = splitedMessage[0] + ":" + hashMapToByteArray(aptitudes);
 						envoyerMessage(reponse, serverSocket, sites.get(next).getKey(), sites.get(next).getValue());
 					}
 					break;
@@ -72,7 +74,8 @@ public class ElectionThread implements Runnable {
 					
 					break;
 				case BONJOUR:
-					
+					String reponse = Message.BONJOUR.toString();
+					envoyerMessage(reponse, serverSocket, receivePacket.getAddress(), receivePacket.getPort());
 					break;
 				default:
 					break;
@@ -107,17 +110,11 @@ public class ElectionThread implements Runnable {
 		electionEnCours = true;
 		HashMap<Integer, Integer> aptitudes = new HashMap<Integer, Integer>();
 		aptitudes.put(id, aptitude);
-
-
-
-
-
-
-
-
+		String message = Message.ELECTION + ":" + hashMapToByteArray(aptitudes);
+		envoyerMessage(message, serverSocket, sites.get(next).getKey(), sites.get(next).getValue());
 	}
 
-	private byte[] HashMapToByteArray(HashMap<Integer, Integer> map){
+	private byte[] hashMapToByteArray(HashMap<Integer, Integer> map){
 		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 		ObjectOutputStream out;
 		try {
