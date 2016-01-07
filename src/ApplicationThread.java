@@ -39,7 +39,7 @@ public class ApplicationThread implements Runnable {
 		while(running){
 			try {
 				// on boucle tant que l'opération n'a pas réussie
-				while(!success){
+				while(!success && running){
 					// si une election est en cours, on att qu'elle se termine
 					if (gestionnaire.isElectionEnCours()){
 						synchronized (sync){
@@ -71,6 +71,9 @@ public class ApplicationThread implements Runnable {
 			} catch (IOException e){
 				e.printStackTrace();
 			}
+		}
+		if(!serverSocket.isClosed()){
+			serverSocket.close();
 		}
 	}
 

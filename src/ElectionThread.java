@@ -24,6 +24,7 @@ public class ElectionThread implements Runnable {
 	private int next;
 	private DatagramSocket serverSocket;
 	private Object sync;
+	private boolean running;
 
 	public ElectionThread(int id, int aptitude, List<Pair<InetAddress, Integer>> sites){
 		this.id = id;
@@ -34,7 +35,7 @@ public class ElectionThread implements Runnable {
 
 	@Override
 	public void run() {
-
+		running = true;
 		
 		try {
 			serverSocket = new DatagramSocket(sites.get(id).getValue());
@@ -162,5 +163,7 @@ public class ElectionThread implements Runnable {
 		this.sync = sync;
 	}
 
-
+	public void setRunning(boolean running){
+		this.running = running;
+	}
 }

@@ -1,6 +1,5 @@
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.HashMap;
 import java.util.List;
 
 import javafx.util.Pair;
@@ -32,7 +31,6 @@ public class Site extends Thread {
 	}
 	
 	public void init(List<Pair<InetAddress, Integer>> sites){
-		// TODO
 		this.sites = sites;
 		
 	}
@@ -63,5 +61,6 @@ public class Site extends Thread {
 
 	public void safeStop() {
 		app.setRunning(false);
+		election.setRunning(false);
 	}
 }
