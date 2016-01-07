@@ -10,9 +10,6 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import com.sun.glass.ui.View.Capability;
-
 import javafx.util.Pair;
 
 

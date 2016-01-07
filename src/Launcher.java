@@ -29,23 +29,25 @@ public class Launcher {
 		Environnement env = new Environnement();
 
 		try {
-			env.init(4, addrNames);
-			// simuler la panne du site elu (id = 3) apres 20 secondes
-			try {
+			int result = env.init(4, addrNames);
+
+			if (result == 1){
+				// simuler la panne du site elu (id = 3) apres 20 secondes
+				try {
+					Thread.sleep(20000);
+					panneEnCours = env.simulerPanne(3);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				// simuler la reprise du site en panne après 10 secondes
 				Thread.sleep(20000);
-				env.simulerPanne(3);
-				panneEnCours = true;
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+				if (panneEnCours){
+					env.reprisePanne(3);
+				}
+
+				Thread.sleep(20000);
+				env.arretTotal();
 			}
-			// simuler la reprise du site en panne après 10 secondes
-			Thread.sleep(20000);
-			if (panneEnCours){
-				env.reprisePanne(3);
-			}
-			
-			Thread.sleep(20000);
-			env.arretTotal();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
